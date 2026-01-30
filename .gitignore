@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment variables (CRITICAL)
+.env
+*.env
+.env.local
+
+# Build outputs
+dist/
+build/
+.vercel/
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+
+# OS Metadata
+.DS_Store
+Thumbs.db
