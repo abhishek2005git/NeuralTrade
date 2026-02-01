@@ -31,20 +31,28 @@ export const fetchPriceFromAPI = async (ticker) => {
 
 export const fetchSparklineData = async (ticker) => {
     try {
-        // Calculate the period1 (start) and period2 (end) as Date objects
         const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+        // 🟢 FIX: Look back 7 days to account for weekends and holidays
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
 
         const result = await yahoo.chart(ticker, {
-            period1: oneDayAgo, // 🟢 Start date (Required)
-            period2: now,       // 🟢 End date
-            interval: '1h'      // 🟢 1-hour intervals
+            period1: sevenDaysAgo, // Covers the weekend gap
+            period2: now,
+            interval: '1h' 
         });
         
-        if (!result.quotes || result.quotes.length === 0) return [];
+        if (!result.quotes || result.quotes.length === 0) {
+            console.log(`⚠️ No sparkline data found for ${ticker}`);
+            return [];
+        }
 
-        // Filter out nulls to ensure a clean line
-        return result.quotes.map(q => q.close).filter(val => val !== null);
+        // Filter out nulls and take the last 24 available data points
+        // This ensures the sparkline represents a consistent "day of trading"
+        const cleanData = result.quotes
+            .map(q => q.close)
+            .filter(val => val !== null);
+
+        return cleanData.slice(-24); 
     } catch (error) {
         console.error(`⚠️ Sparkline Engine Error for ${ticker}:`, error.message);
         return [];

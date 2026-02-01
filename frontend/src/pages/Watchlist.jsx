@@ -7,11 +7,6 @@ import Sparkline from '../components/Sparkline';
 import { useLivePrice } from '../hooks/useLivePrice';
 import { TrendingUp, ArrowUpRight, Activity, Zap, Search } from 'lucide-react';
 
-// src/pages/Watchlist.jsx (inside WatchlistCard)
-
-// src/pages/Watchlist.jsx (inside WatchlistCard)
-
-// src/pages/Watchlist.jsx
 
 const WatchlistCard = ({ stock }) => {
   const navigate = useNavigate();

@@ -1,9 +1,15 @@
 import React from 'react';
 
-// src/components/Sparkline.jsx
 
 // src/components/Sparkline.jsx
 const Sparkline = ({ data, color = "#22c55e" }) => {
+  if (!Array.isArray(data) || data.length < 2) {
+    return (
+      <div className="absolute bottom-4 left-0 w-full px-6 opacity-20 italic text-[8px] text-gray-500 uppercase tracking-tighter">
+        Generating Neural Waveform...
+      </div>
+    );
+  }
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
