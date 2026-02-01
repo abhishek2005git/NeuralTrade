@@ -1,6 +1,6 @@
 import Stock from "../models/Stock.js";
 import { redisClient } from '../config/redis.js';
-import { fetchPredictionFromAI, fetchPriceFromAPI } from '../services/marketService.js';
+import { fetchPredictionFromAI, fetchPriceFromAPI, getUnifiedTimeline} from '../services/marketService.js';
 
 const CACHE_TTL = 300; // 5 Minutes for Live Price
 
@@ -91,5 +91,36 @@ export const getStockPrediction = async (req, res) => {
     } catch (error) {
         console.error("❌ Prediction Error:", error.message);
         res.status(500).json({ message: "Error fetching stock prediction" });
+    }
+};
+
+// Add this to your stockController.js
+export const getUnifiedData = async (req, res) => {
+    const { ticker } = req.params;
+    const tickerUpper = ticker.toUpperCase();
+    const cacheKey = `stockpulse:unified:${tickerUpper}`;
+
+    try {
+        // 1. Check Redis for a cached version (save those API calls!)
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log(`⚡ Unified Redis HIT for ${tickerUpper}`);
+            return res.json({ timeline: JSON.parse(cachedData), source: 'cache' });
+        }
+
+        // 2. Fetch the "Weld" data from our Service
+        console.log(`📡 Creating Unified Horizon for ${tickerUpper}...`);
+        const timeline = await getUnifiedTimeline(tickerUpper);
+
+        if (timeline && timeline.length > 0) {
+            // Cache for 1 hour (Predictions don't change every second)
+            await redisClient.setEx(cacheKey, 3600, JSON.stringify(timeline));
+            return res.json({ timeline, source: 'live' });
+        }
+
+        res.status(404).json({ message: "Unable to synthesize timeline" });
+    } catch (error) {
+        console.error("🔥 Unified Controller Error:", error.message);
+        res.status(500).json({ message: "Neural Engine Sync Failure" });
     }
 };

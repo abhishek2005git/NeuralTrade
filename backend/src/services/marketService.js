@@ -74,3 +74,37 @@ export const fetchTrendingTickers = async () => {
         return [];
     }
 };
+
+export const getUnifiedTimeline = async (ticker) => {
+    try {
+        const historyData = await fetchSparklineData(ticker); 
+        const predictionData = await fetchPredictionFromAI(ticker);
+
+        // 🟢 DEFENSIVE CHECK: If either is empty, don't crash, return empty array
+        if (!historyData || historyData.length === 0 || !predictionData || predictionData.length === 0) {
+            console.warn(`⚠️ Incomplete data for ${ticker}. History: ${historyData?.length}, Pred: ${predictionData?.length}`);
+            return []; 
+        }
+
+        const now = Date.now();
+        const currentPrice = historyData[historyData.length - 1];
+
+        const past = historyData.map((price, i) => ({
+            timestamp: now - (historyData.length - 1 - i) * 3600000,
+            price: Number(price),
+            type: 'past'
+        }));
+
+        const offset = currentPrice - predictionData[0];
+        const future = predictionData.map((price, i) => ({
+            timestamp: now + (i + 1) * 3600000, 
+            price: Number(price) + offset,
+            type: 'future'
+        }));
+
+        return [...past, ...future];
+    } catch (error) {
+        console.error("🔥 Timeline Merge Error:", error.message);
+        return []; // 🟢 Return empty array so the controller doesn't throw 500
+    }
+};
