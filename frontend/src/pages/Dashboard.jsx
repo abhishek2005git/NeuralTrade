@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Newspaper, Star, Loader2, Activity, Cpu, Zap } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  const [neuralMetrics, setNeuralMetrics] = useState({
+    peak: '---',
+    confidence: '89', // Default fallback
+    trend: 'NEUTRAL',
+    volatility: 'LOW'
+  });
 
   const activeTicker = ticker?.toUpperCase();
   const isStarred = user?.wishlist?.includes(activeTicker);
@@ -149,7 +156,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-8">
-          <FuturePastChart ticker={activeTicker} />
+          <FuturePastChart ticker={activeTicker} onMetricsUpdate={setNeuralMetrics}/>
         </div>
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-4">
@@ -158,9 +165,25 @@ const Dashboard = () => {
               value={priceLoading ? '---' : `$${price}`} 
               subValue={priceLoading ? 'Syncing...' : 'Real-time'}
             />
-            <StatsCard label="Neural Conf." value="89%" trend="up" />
+            <StatsCard 
+              label="Projected Peak" 
+              value={neuralMetrics.peak === '---' ? '---' : `$${neuralMetrics.peak}`}
+              trend={neuralMetrics.trend === 'BULLISH' ? 'up' : 'down'} 
+            />
           </div>
-          <NeuralInsights ticker={activeTicker} />
+          <div className="grid grid-cols-2 gap-4">
+             <StatsCard 
+              label="Neural Conf." 
+              value={`${neuralMetrics.confidence}%`} 
+              trend={neuralMetrics.confidence > 85 ? 'up' : 'down'} 
+            />
+             <StatsCard 
+              label="Signal Mode" 
+              value={neuralMetrics.trend} 
+              subValue="24H Horizon"
+            />
+          </div>
+          <NeuralInsights ticker={activeTicker} metrics={neuralMetrics} />
         </div>
       </div>
     </div>

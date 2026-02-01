@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import axios from 'axios';
 
-const FuturePastChart = ({ ticker }) => {
+const FuturePastChart = ({ ticker, onMetricsUpdate }) => {
   const { data, isLoading } = useQuery({
     queryKey: ['unifiedTimeline', ticker],
     queryFn: async () => {
@@ -16,6 +16,40 @@ const FuturePastChart = ({ ticker }) => {
     },
     enabled: !!ticker,
   });
+
+  useEffect(() => {
+    if (data && data.length > 0 && onMetricsUpdate) {
+      const futurePoints = data.filter(i => i.type === 'future');
+      const pastPoints = data.filter(i => i.type === 'past');
+
+      if (futurePoints.length > 0) {
+        // 1. Calculate Peak
+        const peakPrice = Math.max(...futurePoints.map(i => i.price)).toFixed(2);
+
+        // 2. Calculate Trend
+        const firstFuture = futurePoints[0].price;
+        const lastFuture = futurePoints[futurePoints.length - 1].price;
+        const trendLabel = lastFuture > firstFuture ? "BULLISH" : "BEARISH";
+
+        // 3. Simple Confidence Logic (based on past volatility)
+        const prices = pastPoints.map(p => p.price);
+        const range = Math.max(...prices) - Math.min(...prices);
+        const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const volatility = (range / avgPrice) * 100;
+        
+        // Lower volatility in the past increases AI confidence in the trend
+        const confidenceScore = Math.max(72, 98 - (volatility * 1.5)).toFixed(0);
+
+        // 4. Update the Dashboard
+        onMetricsUpdate({
+          peak: peakPrice,
+          trend: trendLabel,
+          confidence: confidenceScore,
+          volatility: volatility.toFixed(2)
+        });
+      }
+    }
+  }, [data, onMetricsUpdate]);
 
   if (isLoading) return <div className="h-[400px] flex items-center justify-center animate-pulse text-gray-500">SYNCHRONIZING TIMELINES...</div>;
 
@@ -73,24 +107,21 @@ const FuturePastChart = ({ ticker }) => {
             hide 
           />
           <YAxis 
-  // 🟢 1. REMOVE hide={true} to bring back the prices
-  hide={false} 
-  
-  // 🟢 2. DYNAMIC DOMAIN: 10% buffer so the line never hits the ceiling/floor
-  domain={[
-    (dataMin) => dataMin * 0.98, // 2% padding below
-    (dataMax) => dataMax * 1.02  // 2% padding above
-  ]} 
-  
-  // 🟢 3. STYLING: Make it look like a terminal
-  orientation="right" // Professional trading charts usually have price on the right
-  stroke="rgba(255,255,255,0.1)" // Very subtle line
-  tick={{ fontSize: 10, fill: '#666', fontWeight: 'bold', fontFamily: 'monospace' }} 
-  tickFormatter={(val) => `$${val.toFixed(2)}`} // Clean 2-decimal format
-  axisLine={false}
-  tickLine={false}
-  width={50} // Fixed width so the chart doesn't jump when prices change
-/>
+            hide={false} 
+            
+            domain={[
+              (dataMin) => dataMin * 0.98, // 2% padding below
+              (dataMax) => dataMax * 1.02  // 2% padding above
+            ]} 
+            
+            orientation="right" // Professional trading charts usually have price on the right
+            stroke="rgba(255,255,255,0.1)" // Very subtle line
+            tick={{ fontSize: 10, fill: '#666', fontWeight: 'bold', fontFamily: 'monospace' }} 
+            tickFormatter={(val) => `$${val.toFixed(2)}`} // Clean 2-decimal format
+            axisLine={false}
+            tickLine={false}
+            width={50} // Fixed width so the chart doesn't jump when prices change
+          />
           
           <Tooltip content={<CustomTooltip />} />
 
