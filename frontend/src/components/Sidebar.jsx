@@ -1,6 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUI } from '../context/UIContext';
+import { useNavigate, useLocation } from 'react-router-dom'; // 🟢 Added useLocation
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
@@ -12,20 +11,24 @@ import {
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const { activePage, setActivePage } = useUI();
+  const location = useLocation(); // 🟢 Derived source of truth
   const { user, logout } = useAuth();
 
-  const handleNavigation = (pageName, path) => {
-    setActivePage(pageName);
-    navigate(path);
+  // Helper to check if the current path matches
+  const isActive = (path) => {
+    if (path === '/dashboard' && location.pathname === '/') return true;
+    return location.pathname === path;
   };
 
   return (
     <div className="h-screen w-20 bg-surface/30 backdrop-blur-xl border-r border-border flex flex-col items-center py-8">
       
-      {/* 🟢 Brand Logo (Small & Centered) */}
+      {/* 🟢 Brand Logo */}
       <div className="mb-10">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-glow hover:scale-110 transition-transform cursor-pointer">
+        <div 
+          onClick={() => navigate('/')}
+          className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-glow hover:scale-110 transition-transform cursor-pointer"
+        >
           <TrendingUp size={24} className="text-white" />
         </div>
       </div>
@@ -35,20 +38,20 @@ const Sidebar = () => {
         <NavItem 
           icon={<LayoutDashboard size={22} />} 
           label="Dashboard" 
-          active={activePage === 'Dashboard'} 
-          onClick={() => handleNavigation('Dashboard', '/dashboard')}
+          active={isActive('/dashboard') || isActive('/')} 
+          onClick={() => navigate('/dashboard')}
         />
         <NavItem 
           icon={<Star size={22} />} 
           label="Watchlist" 
-          active={activePage === 'Watchlist'} 
-          onClick={() => handleNavigation('Watchlist', '/watchlist')}
+          active={isActive('/watchlist')} 
+          onClick={() => navigate('/watchlist')}
         />
         <NavItem 
           icon={<Settings size={22} />} 
           label="Settings" 
-          active={activePage === 'Settings'} 
-          onClick={() => handleNavigation('Settings', '/settings')}
+          active={isActive('/settings')} 
+          onClick={() => navigate('/settings')}
         />
       </nav>
 
@@ -71,8 +74,8 @@ const Sidebar = () => {
 
         {/* 🔴 Logout Node */}
         <button 
-          onClick={() => {
-            logout();
+          onClick={async () => {
+            await logout();
             navigate('/login');
           }}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:text-danger hover:bg-danger/10 transition-all group"
@@ -97,6 +100,10 @@ const NavItem = ({ icon, active, onClick, label }) => (
       }`}
     >
       {icon}
+      {/* 🟢 Active Indicator Dot */}
+      {active && (
+        <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-primary rounded-l-full shadow-[0_0_8px_#primary]" />
+      )}
     </button>
     
     {/* Label Tooltip */}

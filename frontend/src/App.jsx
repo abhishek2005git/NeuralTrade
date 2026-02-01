@@ -12,7 +12,7 @@ function App() {
   if (isLoading) return null; // Or your pulsing neural logo
 
   return (
-    <Router>
+    // <Router>
       <Routes>
         {/* 1. Public Auth Route */}
         <Route 
@@ -40,7 +40,7 @@ function App() {
           } 
         />
       </Routes>
-    </Router>
+    // </Router>
   );
 }
 
