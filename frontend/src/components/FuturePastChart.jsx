@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, ReferenceLine 
+  Tooltip, ResponsiveContainer, ReferenceLine, ReferenceDot 
 } from 'recharts';
 import axios from 'axios';
 
@@ -168,6 +168,13 @@ const FuturePastChart = ({ ticker, onMetricsUpdate }) => {
               offset: 15, // 🟢 Pushes it down slightly so it doesn't hit the ceiling
               className: "tracking-[0.2em]"
             }}
+          />
+          <ReferenceDot
+            x={data.find(i => i.type === 'future')?.timestamp}
+            y={data.find(i => i.type === 'future')?.price}
+            r={3}
+            fill="#ffffff"
+            stroke="none"
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -8,8 +8,9 @@ import authRoutes from "./routes/authRoutes.js";
 import marketRoutes from "./routes/marketRoutes.js";
 import searchRoutes from './routes/searchRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
+import auditRoutes from "./routes/auditRoutes.js"
 import { connectRedis } from "./config/redis.js";
-
+import './jobs/auditJob.js';
 
 await connectDB();
 connectRedis()
@@ -37,7 +38,9 @@ app.use("/api/stocks", stockRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/audit', auditRoutes);
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📡 Neural Audit Cron Job initialized and standing by...`);
 });

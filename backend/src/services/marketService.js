@@ -1,5 +1,6 @@
 import axios from 'axios';
 import YahooFinance from 'yahoo-finance2';
+import Prediction from '../models/Prediction.js';
 
 const yahoo = new YahooFinance();
 // 1. Prediction Service (Python Brain)
@@ -101,6 +102,30 @@ export const getUnifiedTimeline = async (ticker) => {
             price: Number(price) + offset,
             type: 'future'
         }));
+
+        try {
+            const lastPredictionPoint = future[future.length - 1];
+            
+            // We look for a 'pending' prediction created in the last 1 hour
+            // This prevents the DB from blowing up with duplicate logs
+            await Prediction.findOneAndUpdate(
+                { 
+                    ticker: ticker.toUpperCase(), 
+                    status: 'pending',
+                    createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) } 
+                },
+                {
+                    ticker: ticker.toUpperCase(),
+                    startingPrice: currentPrice,
+                    predictionPrice: lastPredictionPoint.price,
+                    targetTime: new Date(lastPredictionPoint.timestamp),
+                    status: 'pending'
+                },
+                { upsert: true, new: true }
+            );
+        } catch (auditErr) {
+            console.error("🛠 Audit Logging Failed (Non-Critical):", auditErr.message);
+        }
 
         return [...past, ...future];
     } catch (error) {

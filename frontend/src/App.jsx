@@ -5,6 +5,8 @@ import MainShell from './components/MainShell';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/AuthPage';
 import Watchlist from './pages/Watchlist';
+import AuditPage from './pages/AuditPage'; // 🟢 New
+import Screener from './pages/Screener';
 
 function App() {
   const { user, isLoading } = useAuth();
@@ -32,6 +34,8 @@ function App() {
                   <Route path="/stock/:ticker" element={<Dashboard />} />
                   <Route path="/settings" element={<div className="p-10 text-gray-500">Settings coming soon...</div>} />
                   <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="/audit" element={<AuditPage />} />
+                  <Route path="/screener" element={<Screener />} />
                 </Routes> 
               </MainShell>
             ) : (

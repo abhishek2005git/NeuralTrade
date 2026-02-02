@@ -6,28 +6,6 @@ const CACHE_TTL = 300; // 5 Minutes for Live Price
 
 // --- 📈 GET LIVE PRICE (Redis Cached) ---
 export const getLivePrice = async (req, res) => {
-    // const { ticker } = req.params;
-    // const tickerUpper = ticker.toUpperCase();
-    // const cacheKey = `price:${tickerUpper}`;
-
-    // try {
-    //     const cachedData = await redisClient.get(cacheKey);
-    //     if (cachedData) {
-    //         console.log(`cache hit for ${ticker}`);
-            
-    //         return res.json({ ...JSON.parse(cachedData), source: 'cache' });
-    //     }
-    //     console.log(`cache miss for ${ticker}`);
-    //     const marketData = await fetchPriceFromAPI(tickerUpper);
-    //     if (marketData) {
-    //         // Save the entire object (Price + Percentage)
-    //         await redisClient.setEx(cacheKey, 900, JSON.stringify(marketData));
-    //         return res.json({ ...marketData, source: 'live' });
-    //     }
-    //     res.status(404).json({ message: "Not found" });
-    // } catch (error) {
-    //     res.status(500).json({ message: "Error", error: error.message });
-    // }
 
     const { ticker } = req.params;
     const tickerUpper = ticker.toUpperCase();
@@ -46,7 +24,6 @@ export const getLivePrice = async (req, res) => {
         const marketData = await fetchPriceFromAPI(tickerUpper);
 
         if (marketData) {
-            // Since Yahoo is free, we can use a shorter cache (2 mins) for "live" feel
             await redisClient.setEx(cacheKey, 120, JSON.stringify(marketData));
             return res.json({ ...marketData, source: 'live' });
         }

@@ -1,17 +1,19 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // 🟢 Added useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
   TrendingUp, 
   Star, 
   Settings, 
-  LogOut 
+  LogOut,
+  ShieldCheck,
+  Search
 } from 'lucide-react';
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // 🟢 Derived source of truth
+  const location = useLocation();
   const { user, logout } = useAuth();
 
   // Helper to check if the current path matches
@@ -42,10 +44,22 @@ const Sidebar = () => {
           onClick={() => navigate('/dashboard')}
         />
         <NavItem 
+          icon={<Search size={22} />} 
+          label="Screener" 
+          active={isActive('/screener')} 
+          onClick={() => navigate('/screener')}
+        />
+        <NavItem 
           icon={<Star size={22} />} 
           label="Watchlist" 
           active={isActive('/watchlist')} 
           onClick={() => navigate('/watchlist')}
+        />
+        <NavItem 
+          icon={<ShieldCheck size={22} />} 
+          label="Neural Audit" 
+          active={isActive('/audit')} 
+          onClick={() => navigate('/audit')}
         />
         <NavItem 
           icon={<Settings size={22} />} 
