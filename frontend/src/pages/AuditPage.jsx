@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // 🟢 Added for navigation
 import { ShieldCheck, Target, Zap, ChevronRight, Activity } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 
@@ -59,51 +60,67 @@ const AuditPage = () => {
 };
 
 const AuditRow = ({ log }) => {
+  const navigate = useNavigate();
   const isHighAccuracy = log.accuracyScore >= 95;
+
+  const handleNavigation = (e) => {
+    // 🟢 CLICK IS REGISTERED HERE
+    console.log(`📡 NAVIGATING TO: /stock/${log.ticker}`);
+    navigate(`/stock/${log.ticker.toUpperCase()}`);
+  };
   
   return (
-    <GlassCard className="p-0 overflow-hidden group hover:border-primary/30 transition-all duration-500">
-      <div className="flex items-center justify-between p-6">
-        <div className="flex items-center gap-8">
-          {/* Ticker Info */}
-          <div className="w-16">
-            <span className="text-lg font-black text-white block">{log.ticker}</span>
-            <span className="text-[8px] text-gray-600 font-mono uppercase tracking-tighter">NODE_{log._id.slice(-4)}</span>
-          </div>
+    <div 
+      className="relative z-10 w-full cursor-pointer active:scale-[0.99] transition-transform duration-200"
+      onClick={handleNavigation}
+    >
+      <GlassCard 
+        className="p-0 overflow-hidden group hover:border-primary/30 transition-all duration-500 pointer-events-none"
+      >
+        <div className="flex items-center justify-between p-6 pointer-events-auto">
+          <div className="flex items-center gap-8">
+            {/* Ticker Info */}
+            <div className="w-16">
+              <span className="text-lg font-black text-white block">{log.ticker}</span>
+              <span className="text-[8px] text-gray-600 font-mono uppercase tracking-tighter">NODE_{log._id.slice(-4)}</span>
+            </div>
 
-          {/* Target Data */}
-          <div className="hidden md:block">
-            <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Target Price</span>
-            <span className="text-sm font-mono font-bold text-white">${log.predictionPrice.toFixed(2)}</span>
-          </div>
+            {/* Target Data */}
+            <div className="hidden md:block">
+              <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Target Price</span>
+              <span className="text-sm font-mono font-bold text-white">${log.predictionPrice.toFixed(2)}</span>
+            </div>
 
-          {/* Actual Data */}
-          <div className="hidden md:block">
-            <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Market Reality</span>
-            <span className="text-sm font-mono font-bold text-gray-300">${log.actualPrice.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Accuracy Score */}
-        <div className="flex items-center gap-6">
-          <div className="text-right">
-            <span className={`text-xl font-black tracking-tighter ${isHighAccuracy ? 'text-primary' : 'text-secondary'}`}>
-              {log.accuracyScore}%
-            </span>
-            <div className="h-1 w-24 bg-white/5 rounded-full mt-2 overflow-hidden">
-               <div 
-                 className={`h-full transition-all duration-1000 ${isHighAccuracy ? 'bg-primary' : 'bg-secondary'}`}
-                 style={{ width: `${log.accuracyScore}%` }}
-               />
+            {/* Actual Data */}
+            <div className="hidden md:block">
+              <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Market Reality</span>
+              <span className="text-sm font-mono font-bold text-gray-300">${log.actualPrice.toFixed(2)}</span>
             </div>
           </div>
-          <ChevronRight size={16} className="text-gray-700 group-hover:text-primary transition-colors" />
+
+          {/* Accuracy Score */}
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <span className={`text-xl font-black tracking-tighter ${isHighAccuracy ? 'text-primary' : 'text-secondary'}`}>
+                {log.accuracyScore}%
+              </span>
+              <div className="h-1 w-24 bg-white/5 rounded-full mt-2 overflow-hidden">
+                 <div 
+                   className={`h-full transition-all duration-1000 ${isHighAccuracy ? 'bg-primary' : 'bg-secondary'}`}
+                   style={{ width: `${log.accuracyScore}%` }}
+                 />
+              </div>
+            </div>
+            <ChevronRight 
+              size={16} 
+              className="text-gray-700 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" 
+            />
+          </div>
         </div>
-      </div>
-    </GlassCard>
+      </GlassCard>
+    </div>
   );
 };
-
 const StatMini = ({ label, value, icon }) => (
   <GlassCard className="p-6 flex flex-col gap-2 border-white/5 bg-white/[0.01]">
     <div className="text-primary opacity-50">{icon}</div>
